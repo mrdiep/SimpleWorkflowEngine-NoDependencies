@@ -1,4 +1,4 @@
-import uuid from 'uuid'
+import { v4 } from 'uuid'
 import { FormBody, RecordId } from "models";
 import { IDataSourceResolver } from './resolverBase';
 
@@ -12,26 +12,26 @@ export interface RecordInfo {
 export interface IWorkflowInstanceDataSourceResolver extends IDataSourceResolver {
   genId(): RecordId;
   getRecord(recordId: RecordId): Promise<RecordInfo>;
-  pushRecord(recordInfo: RecordInfo): Promise<boolean>;
+  pushRecord(recordInfo: RecordInfo): Promise<RecordId>;
 }
 
 /**
  * This is fake, we can connect to the real WorkflowInstace DataSource from any database like sqlserver or dynamodb...ect
  */
 export class FakeWorkflowInstanceDataSourceResolver implements IWorkflowInstanceDataSourceResolver {
-  records: RecordInfo[];
+  records: RecordInfo[] = [];
   
   genId(): RecordId {
-    return uuid.v4();
+    return v4();
   }
 
   async getRecord(recordId: RecordId): Promise<RecordInfo> {
     return this.records.find(x => x.recordId = recordId);
   }
 
-  async pushRecord(recordInfo: RecordInfo): Promise<boolean> {
+  async pushRecord(recordInfo: RecordInfo): Promise<RecordId> {
     this.records.push(recordInfo);
-    return true;
+    return recordInfo.recordId;
   }
 
 }

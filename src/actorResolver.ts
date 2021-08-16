@@ -15,16 +15,24 @@ export interface IActorResolver {
 }
 
 export class ActorResolver implements IActorResolver {
-  constructor(protected currentUserId: UserIdType) {
+  constructor(protected dependencies) {
   }
 
   async resolve(actorDef: WorkflowActorSchema, recordId: RecordId): Promise<IWorkflowActor> {
-    if (actorDef.type == 'UserRole') {
-      return (new UserRolesActor(recordId, this.currentUserId, actorDef as ByUserRolesWorkflowActorSchema));
+    if (actorDef.type == 'UserRoles') {
+      return (new UserRolesActor(this.dependencies, recordId, actorDef as ByUserRolesWorkflowActorSchema));
     }
 
     if (actorDef.type == 'SpecificUsers') {
-      return (new SpecificUsersActor(recordId, this.currentUserId, actorDef as BySpecificUsersWorkflowActorSchema));
+      return (new SpecificUsersActor(this.dependencies, recordId, actorDef as BySpecificUsersWorkflowActorSchema));
+    }
+
+    if (actorDef.type == 'FormBased') {
+      return (new SpecificUsersActor(this.dependencies, recordId, actorDef as BySpecificUsersWorkflowActorSchema));
+    }
+    
+    if (actorDef.type == 'NoAuthorized') {
+      return (new SpecificUsersActor(this.dependencies, recordId, actorDef as BySpecificUsersWorkflowActorSchema));
     }
 
     return null;
@@ -32,14 +40,12 @@ export class ActorResolver implements IActorResolver {
 }
 
 export abstract class WorkflowActorAbstract<T> implements IWorkflowActor {
-  constructor(protected recordId: RecordId, protected currentUserId: UserIdType, protected def: T) {
+  constructor(protected dependencies, protected recordId: RecordId, protected def: T) {
   }
 
   async isAllow(): Promise<boolean> {
     return false;
   }
-
-
 }
 
 export class UserRolesActor extends WorkflowActorAbstract<ByUserRolesWorkflowActorSchema> {
@@ -52,6 +58,17 @@ export class UserRolesActor extends WorkflowActorAbstract<ByUserRolesWorkflowAct
 }
 
 export class SpecificUsersActor extends WorkflowActorAbstract<BySpecificUsersWorkflowActorSchema> {
+  async isAllow(): Promise<boolean> {
+    return true;
+  }
+}
+
+export class FormBasedActor extends WorkflowActorAbstract<BySpecificUsersWorkflowActorSchema> {
+
+}
+
+
+export class NoAuthorizedActor extends WorkflowActorAbstract<null> {
   async isAllow(): Promise<boolean> {
     return true;
   }

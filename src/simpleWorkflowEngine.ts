@@ -1,10 +1,12 @@
 import { IActorResolver } from "actorResolver";
 import { ICommandResolver } from "commandResolver";
 import { FormBody, RecordId, UserIdType, WorkflowCommandSchema, WorkflowSchema, WorkflowStateSchema } from "models";
-import { IWorkflowInstanceDataSourceResolver } from "resolvers/dataSourceResolver";
+import { IWorkflowInstanceDataSourceResolver } from "resolvers/workflowInstanceDataSourceResolver";
 
 export class WorkflowExecutionResult {
   constructor(status: boolean, message: string) { }
+
+  recordId: RecordId;
 }
 
 export interface ISimpleWorkflowEngine {
@@ -32,14 +34,17 @@ export class SimpleWorkflowEngine implements ISimpleWorkflowEngine {
 
   async init(initBody: FormBody): Promise<WorkflowExecutionResult> {
     const beginState = this.workflowSchema.states.find(x => x.type == 'begin');
-    this.workflowInstanceDataSourceResolver.pushRecord({
+    const recordId: RecordId = await this.workflowInstanceDataSourceResolver.pushRecord({
       recordId: this.workflowInstanceDataSourceResolver.genId(),
       formBody: initBody,
       stateName: beginState.uniqueName,
       workflowUniqueName: this.workflowSchema.uniqueName
     });
 
-    return new WorkflowExecutionResult(true, 'init workflow success');
+    const result = new WorkflowExecutionResult(true, 'init workflow success');
+    result.recordId = recordId;
+
+    return result;
   }
 
   async getCurrentState(recordId: RecordId): Promise<WorkflowStateSchema> {
@@ -47,8 +52,9 @@ export class SimpleWorkflowEngine implements ISimpleWorkflowEngine {
     if (!recordInfo) return null;
     const stateDefinition = this.workflowSchema.states.find(x => x.uniqueName = recordInfo.stateName);
 
-    const actors = await Promise.all(stateDefinition.actors.map(async actorDef => this.actorResolver.resolve(actorDef, recordId)));
-    const commands = await Promise.all(stateDefinition.commands.map(async commandDef => this.commandResolver.resolve(commandDef, recordId)));
+    const actors = await Promise.all(stateDefinition.actors?.list?.map(async actorDef => this.actorResolver.resolve(actorDef, recordId)) ?? []);
+    // still support AND operator
+    const commands = await Promise.all(stateDefinition.commands?.map(async commandDef => this.commandResolver.resolve(commandDef, recordId)) ?? []);
 
     return stateDefinition;
   }

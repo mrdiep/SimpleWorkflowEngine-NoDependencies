@@ -1,30 +1,32 @@
 uniqueName: demo-wf1
+actors:
+  Everyone: # string actor name
+    type: NoAuthorized
+    descriptions: Access this instance without authorized
+  userInRegionAC: # string actor name
+    type: UserRoles
+    descriptions: all user has role=user can create this request 
+    roleNames:
+      - user-region-A
+      - user-region-C
+  userHasId123:
+    type: SpecificUsers
+    description: Some special User can do, listed by userId bellow
+    userIds:
+      - 1
+      - 2
+      - 3
+  documentAuthor:
+    type: FormBased
+    descriptions: User crate has right on this documents
+    expression: form.requestId==$currentUser #$ is the buit in 
+    runtime: jmespath
 states:
-  - uniqueName: init
+  - uniqueName: draft
     type: begin
     actors:
-      - type: UserRoles
-        descriptions: all user has role=user can create this request 
-        roleNames:
-          - user-region-A
-          - user-region-C
-      - type: SpecificUsers
-        description: Some special User can do, listed by userId bellow
-        userIds:
-          - 1
-          - 2
-          - 3
-    controls:
-      - type: textbox
-        uniqueName: requestTitle
-        displayText: Request Title
-        require: false
-      - type: textbox
-        uniqueName: Description
-        displayText: Description
-        require: false
-  - uniqueName: draft
-    actors: document-owner
+      - ${actors:userInRegionAC}
+      - ${actors:userHasId123}
     controls:
       - type: textbox
         uniqueName: requestTitle
@@ -42,10 +44,17 @@ states:
       - uniqueName: save
         displayText: Save
         nextState: null
+        actors:
+        - ${actors:userInRegionAC}
       - uniqueName: submit
         displayText: Submit
         nextState: lavel1-reviewing
-        condition: form.
+        condition: form
+        actors:
+          operator: AND
+          list:
+          - ${actors:userInRegionAC}
+          - ${actors:documentAuthor}
         tasks:
           - uniqueName: sendEmail
             type: sendEmail
