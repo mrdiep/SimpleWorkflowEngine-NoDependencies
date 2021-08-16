@@ -1,0 +1,137 @@
+uniqueName: demo-wf1
+states:
+  - uniqueName: init
+    type: begin
+    actors:
+      - type: UserRoles
+        descriptions: all user has role=user can create this request 
+        roleNames:
+          - user-region-A
+          - user-region-C
+      - type: SpecificUsers
+        description: Some special User can do, listed by userId bellow
+        userIds:
+          - 1
+          - 2
+          - 3
+    controls:
+      - type: textbox
+        uniqueName: requestTitle
+        displayText: Request Title
+        require: false
+      - type: textbox
+        uniqueName: Description
+        displayText: Description
+        require: false
+  - uniqueName: draft
+    actors: document-owner
+    controls:
+      - type: textbox
+        uniqueName: requestTitle
+        displayText: Request Title
+        require: false
+      - type: textbox
+        uniqueName: Description
+        displayText: Description
+        require: false
+      - type: textbox
+        formuniqueName: reviewerL1
+        displayText: Choose your reviewer
+        require: true
+    commands:
+      - uniqueName: save
+        displayText: Save
+        nextState: null
+      - uniqueName: submit
+        displayText: Submit
+        nextState: lavel1-reviewing
+        condition: form.
+        tasks:
+          - uniqueName: sendEmail
+            type: sendEmail
+            descriptions: Send email to edit level1-reviewer
+            emailTemplete: EM01
+          - uniqueName: sendEmail
+            type: sendEmail
+            descriptions: Send email to edit document owner
+            emailTemplate: EM02
+  - uniqueName: level1-reviewing
+    actors: form.reviewerL1
+    controls:
+      - type: textbox
+        uniqueName: requestTitle
+        displayText: Request Title
+        readonly: true
+      - type: textbox
+        uniqueName: Description
+        displayText: Description
+        readonly: true
+      - type: textbox
+        formuniqueName: reviewerL1
+        displayText: Selected Reviewer
+        readonly: true
+    commands:
+      - uniqueName: approve
+        displayText: Approve
+        nextState: end
+        tasks:
+          - uniqueName: sendEmail
+            type: sendEmail
+            descriptions: Send email to author
+            emailTemplete: EM03
+      - uniqueName: approve-to-l2
+        displayText: Approve
+        nextState: level2-reviewing
+        allowCommand: Check!CheckCon1
+        tasks:
+          - uniqueName: sendEmail
+            type: sendEmail
+            descriptions: Send email to author
+            emailTemplete: EM03
+          - uniqueName: task1_demo
+            task: Task!Task1
+            runAt: beforeExecution
+      - uniqueName: reject
+        displayText: Reject
+        nextState: draft
+        tasks:
+          - uniqueName: sendEmail
+            type: sendEmail
+            descriptions: Send email to author
+            emailTemplete: EM04
+  - uniqueName: level2-reviewing
+    actors: form.reviewerL2
+    controls:
+      - type: textbox
+        uniqueName: requestTitle
+        displayText: Request Title
+        readonly: true
+      - type: textbox
+        uniqueName: Description
+        displayText: Description
+        readonly: true
+      - type: textbox
+        formuniqueName: reviewerL1
+        displayText: L1 Reviewer
+        readonly: true
+      - type: textbox
+        formuniqueName: l1Feeback
+        displayText: L1 Feedback
+        readonly: true
+    commands:
+  - uniqueName: end
+    type: end
+    actors: reviewerL1, author
+    controls:
+      - type: textbox
+        uniqueName: requestTitle
+        displayText: Request Title
+        readonly: true
+      - type: textbox
+        uniqueName: Description
+        displayText: Description
+        readonly: true
+      - type: textbox
+        formuniqueName: reviewerL1
+        displayText: Reviewer
+        readonly: true
