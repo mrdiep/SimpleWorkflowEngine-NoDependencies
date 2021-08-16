@@ -1,15 +1,20 @@
-import { ActorResolver, SpecificUsersActor, UserRolesActor } from 'actorResolver';
+import { ActorResolver } from 'actorResolver';
 import * as awilix from 'awilix';
-import { FakeDataSourceResolver } from 'dataSourceResolver';
+import { FakeWorkflowInstanceDataSourceResolver } from 'resolvers/dataSourceResolver';
 import { UserIdType, WorkflowSchema } from 'models';
+import { UserDataSourceResolver } from 'resolvers/userDataSourceResolver';
 import { SimpleWorkflowEngine } from 'workflow';
 const container = awilix.createContainer({
-  injectionMode: awilix.InjectionMode.CLASSIC
+  injectionMode: awilix.InjectionMode.PROXY
 })
 
-container.register(SimpleWorkflowEngine.name, awilix.asClass(SimpleWorkflowEngine).scoped());
-container.register('dataSourceResolver', awilix.asClass(FakeDataSourceResolver).scoped());
-container.register('actorResolver', awilix.asClass(ActorResolver).scoped());
+const camelCaseTransform = (name: string) => name.charAt(0).toLowerCase() + name.slice(1);
+
+container.register(camelCaseTransform(SimpleWorkflowEngine.name), awilix.asClass(SimpleWorkflowEngine).scoped());
+container.register(camelCaseTransform('WorkflowInstanceDataSourceResolver'), awilix.asClass(FakeWorkflowInstanceDataSourceResolver).scoped());
+container.register(camelCaseTransform(UserDataSourceResolver.name), awilix.asClass(UserDataSourceResolver).scoped())
+
+container.register(camelCaseTransform(ActorResolver.name), awilix.asClass(ActorResolver).scoped());
 // container.register('userRolesActor', awilix.asClass(UserRolesActor).scoped())
 // container.register('specificUsersActor', awilix.asClass(SpecificUsersActor).scoped())
 
@@ -20,7 +25,7 @@ export const createWorkflowEngine: TypeCreateWorkflowEngineHandler = (workflowSc
     scope.register('workflowSchema', awilix.asValue(workflowSchema));
     scope.register('currentUserId', awilix.asValue(currentUserId));
 
-    return scope.resolve(SimpleWorkflowEngine.name);
+    return scope.resolve(camelCaseTransform(SimpleWorkflowEngine.name));
 
 }
 

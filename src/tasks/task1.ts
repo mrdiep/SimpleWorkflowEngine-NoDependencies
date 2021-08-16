@@ -1,8 +1,9 @@
-import { TaskBaseAbstract } from "./taskbase";
+import { TaskBaseAbstract, TaskExecutionResult } from "./taskbase";
 
 export class Task1 extends TaskBaseAbstract {
-    run() {
-        throw new Error("Method not implemented.");
+    async run(): Promise<TaskExecutionResult> {
+        console.log("Simple task 1", this.dependencies)
+        return TaskExecutionResult.Success();
     }
 
 }

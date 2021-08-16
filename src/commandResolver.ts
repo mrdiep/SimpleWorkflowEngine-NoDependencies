@@ -8,6 +8,15 @@ export interface IWorkflowCommand {
   isAllow(): Promise<boolean>;
 }
 
+export abstract class WorkflowCommandAbstract<T> implements IWorkflowCommand {
+  constructor(protected recordId: RecordId, protected currentUserId: UserIdType, protected def: T) {
+  }
+
+  async isAllow(): Promise<boolean> {
+    return false;
+  }
+}
+
 export interface ICommandResolver {
   resolve(actorDef: WorkflowCommandSchema, recordId: RecordId): Promise<IWorkflowCommand>;
 }
@@ -20,13 +29,3 @@ export class CommandResolver implements ICommandResolver {
     return null;
   }
 }
-
-export abstract class WorkflowCommandAbstract<T> implements IWorkflowCommand {
-  constructor(protected recordId: RecordId, protected currentUserId: UserIdType, protected def: T) {
-  }
-
-  async isAllow(): Promise<boolean> {
-    return false;
-  }
-}
-

@@ -1,8 +1,8 @@
-import { TaskBaseAbstract } from "./taskbase";
+import { TaskBaseAbstract, TaskExecutionResult } from "./taskbase";
 
 export class SendEmail extends TaskBaseAbstract {
-    run() {
-        throw new Error("Method not implemented.");
+    async run(): Promise<TaskExecutionResult> {
+        console.log("SendEmail", this.dependencies)
+        return TaskExecutionResult.Success();
     }
-
 }

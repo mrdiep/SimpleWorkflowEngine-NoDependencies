@@ -3,8 +3,7 @@ import {
   ByUserRolesWorkflowActorSchema,
   RecordId,
   UserIdType,
-  WorkflowActorSchema,
-  WorkflowStateSchema
+  WorkflowActorSchema
 } from "models";
 
 export interface IWorkflowActor {

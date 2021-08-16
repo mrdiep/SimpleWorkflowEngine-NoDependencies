@@ -1,7 +1,8 @@
-import { CheckBaseAbstract } from "./checkbase";
+import { CheckBaseAbstract, CheckExecutionResult } from "./checkbase";
 
 export class Check1 extends CheckBaseAbstract {
-    run():Promise<boolean> {
-        throw new Error("Method not implemented.");
+    async check():Promise<CheckExecutionResult> {
+        console.log('check task number 1', this.dependencies)
+        return CheckExecutionResult.Allow();
     }
 }
